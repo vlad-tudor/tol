@@ -1,0 +1,28 @@
+@use "./tokens" as *;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  background: $color-void;
+  font-family: $font-sans;
+}
+
+.scene {
+  width: 100vw;
+  height: 100vh;
+
+  canvas {
+    display: block;
+  }
+}

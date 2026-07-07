@@ -1,0 +1,21 @@
+dist
+.solid
+.output
+
+# Environment
+.env
+.env*.local
+
+# Dependencies
+/node_modules
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+
+# System files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,16 @@
+services:
+  tol:
+    image: tol:latest
+    restart: unless-stopped
+    networks:
+      - infra-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tol.rule=Host(`tol.${DOMAIN}`)"
+      - "traefik.http.routers.tol.entrypoints=websecure"
+      - "traefik.http.routers.tol.tls.certresolver=letsencrypt"
+      - "traefik.http.services.tol.loadbalancer.server.port=3000"
+
+networks:
+  infra-net:
+    external: true

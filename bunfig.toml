@@ -1,0 +1,4 @@
+# Run tests via `bun run test` — it passes --conditions=browser so bun resolves
+# solid-js's browser build (its reactivity primitives) rather than the SSR one.
+[test]
+preload = ["./src/test/setup.ts"]

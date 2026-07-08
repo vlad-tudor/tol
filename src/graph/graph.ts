@@ -1,32 +1,47 @@
 import type { GraphData, GraphEdge, GraphNode } from "~/graph/types";
 
-/** Index nodes by id for O(1) lookup. */
+/**
+ * Index a graph's nodes by id for O(1) lookup.
+ *
+ * @param graph - the graph whose nodes to index
+ * @returns a Map from node id to the corresponding {@link GraphNode}
+ */
 export function nodesById(graph: GraphData): Map<string, GraphNode> {
   return new Map(graph.nodes.map((node) => [node.id, node]));
 }
 
 /**
- * Every edge that touches `nodeId`, regardless of direction. This is the exact
- * set of tubes to rebuild when a node is dragged to a new position.
+ * Find every edge incident to a node. Edges are undirected, so this just asks
+ * whether the node id appears in each edge's endpoint pair.
+ *
+ * @param graph - the graph to search
+ * @param nodeId - the node whose edges to collect
+ * @returns the incident edges — exactly the tubes to rebuild when the node moves
  */
 export function edgesForNode(graph: GraphData, nodeId: string): GraphEdge[] {
-  return graph.edges.filter(
-    (edge) => edge.source === nodeId || edge.target === nodeId,
-  );
+  return graph.edges.filter((edge) => edge.endpoints.includes(nodeId));
 }
 
-/** The ids of every node directly connected to `nodeId`. */
+/**
+ * List the ids of every node directly connected to a node.
+ *
+ * @param graph - the graph to search
+ * @param nodeId - the node whose neighbours to find
+ * @returns the id on the far end of each incident edge
+ */
 export function neighborIds(graph: GraphData, nodeId: string): string[] {
-  return edgesForNode(graph, nodeId).map((edge) =>
-    edge.source === nodeId ? edge.target : edge.source,
+  return edgesForNode(graph, nodeId).flatMap((edge) =>
+    edge.endpoints.filter((endpoint) => endpoint !== nodeId),
   );
 }
 
 /**
- * Structural problems with a graph, as human-readable messages. An empty array
- * means the graph is well-formed: unique node and edge ids, no self-loops, and
- * every edge endpoint resolving to a real node. Used both as a test oracle and
- * as the guard when loading untrusted JSON.
+ * Check a graph for structural problems.
+ *
+ * @param graph - the graph to validate
+ * @returns one human-readable message per problem found — duplicate node or
+ *   edge ids, self-loops, and edges referencing a missing node; an empty array
+ *   means the graph is well-formed
  */
 export function validateGraph(graph: GraphData): string[] {
   const problems: string[] = [];
@@ -46,14 +61,14 @@ export function validateGraph(graph: GraphData): string[] {
     }
     edgeIds.add(edge.id);
 
-    if (edge.source === edge.target) {
-      problems.push(`Self-loop on node: ${edge.source}`);
+    const [from, to] = edge.endpoints;
+    if (from === to) {
+      problems.push(`Self-loop on node: ${from}`);
     }
-    if (!nodeIds.has(edge.source)) {
-      problems.push(`Edge ${edge.id} references missing node: ${edge.source}`);
-    }
-    if (!nodeIds.has(edge.target)) {
-      problems.push(`Edge ${edge.id} references missing node: ${edge.target}`);
+    for (const endpoint of edge.endpoints) {
+      if (!nodeIds.has(endpoint)) {
+        problems.push(`Edge ${edge.id} references missing node: ${endpoint}`);
+      }
     }
   }
 

@@ -1,4 +1,9 @@
-import type { GraphData, GraphEdge, GraphNode } from "~/graph/types";
+import {
+  type GraphData,
+  type GraphEdge,
+  type GraphNode,
+  PillarPosition,
+} from "~/graph/types";
 
 /**
  * The classical (Kircher) Tree of Life: ten sephirot joined by twenty-two
@@ -13,20 +18,20 @@ import type { GraphData, GraphEdge, GraphNode } from "~/graph/types";
 // Positions are centred on the origin so the figure frames itself under the
 // default camera target. Left pillar x < 0, right pillar x > 0, middle at 0.
 const SEPHIROT: GraphNode[] = [
-  { id: "keter", label: "Keter", pillar: "middle", position: { x: 0, y: 5, z: 0 } },
-  { id: "chokmah", label: "Chokmah", pillar: "right", position: { x: 1.2, y: 3.6, z: 0 } },
-  { id: "binah", label: "Binah", pillar: "left", position: { x: -1.2, y: 3.6, z: 0 } },
-  { id: "chesed", label: "Chesed", pillar: "right", position: { x: 1.2, y: 1.2, z: 0 } },
-  { id: "gevurah", label: "Gevurah", pillar: "left", position: { x: -1.2, y: 1.2, z: 0 } },
-  { id: "tiferet", label: "Tiferet", pillar: "middle", position: { x: 0, y: 0, z: 0 } },
-  { id: "netzach", label: "Netzach", pillar: "right", position: { x: 1.2, y: -1.6, z: 0 } },
-  { id: "hod", label: "Hod", pillar: "left", position: { x: -1.2, y: -1.6, z: 0 } },
-  { id: "yesod", label: "Yesod", pillar: "middle", position: { x: 0, y: -3.2, z: 0 } },
-  { id: "malkuth", label: "Malkuth", pillar: "middle", position: { x: 0, y: -5, z: 0 } },
+  { id: "keter", label: "Keter", pillar: PillarPosition.Middle, position: { x: 0, y: 5, z: 0 } },
+  { id: "chokmah", label: "Chokmah", pillar: PillarPosition.Right, position: { x: 1.2, y: 3.6, z: 0 } },
+  { id: "binah", label: "Binah", pillar: PillarPosition.Left, position: { x: -1.2, y: 3.6, z: 0 } },
+  { id: "chesed", label: "Chesed", pillar: PillarPosition.Right, position: { x: 1.2, y: 1.2, z: 0 } },
+  { id: "gevurah", label: "Gevurah", pillar: PillarPosition.Left, position: { x: -1.2, y: 1.2, z: 0 } },
+  { id: "tiferet", label: "Tiferet", pillar: PillarPosition.Middle, position: { x: 0, y: 0, z: 0 } },
+  { id: "netzach", label: "Netzach", pillar: PillarPosition.Right, position: { x: 1.2, y: -1.6, z: 0 } },
+  { id: "hod", label: "Hod", pillar: PillarPosition.Left, position: { x: -1.2, y: -1.6, z: 0 } },
+  { id: "yesod", label: "Yesod", pillar: PillarPosition.Middle, position: { x: 0, y: -3.2, z: 0 } },
+  { id: "malkuth", label: "Malkuth", pillar: PillarPosition.Middle, position: { x: 0, y: -5, z: 0 } },
 ];
 
-// The twenty-two paths, as ordered node-id pairs. Edge ids are derived from the
-// endpoints so the two representations can never drift apart.
+// The twenty-two paths, as unordered node-id pairs. Edge ids are derived from
+// the endpoints so the two representations can never drift apart.
 const PATHS: ReadonlyArray<readonly [string, string]> = [
   ["keter", "chokmah"],
   ["keter", "binah"],
@@ -52,19 +57,24 @@ const PATHS: ReadonlyArray<readonly [string, string]> = [
   ["yesod", "malkuth"],
 ];
 
-const PATH_EDGES: GraphEdge[] = PATHS.map(([source, target]) => ({
-  id: `${source}-${target}`,
-  source,
-  target,
-}));
+const PATH_EDGES: GraphEdge[] = PATHS.map(
+  ([from, to]): GraphEdge => ({ id: `${from}-${to}`, endpoints: [from, to] }),
+);
 
 /**
- * A fresh, independent copy of the canonical Tree of Life. Returns a deep clone
- * every call so mutating the rendered/edited graph never touches this template.
+ * Build the canonical Tree of Life.
+ *
+ * @returns a fresh, independent deep clone every call, so mutating the
+ *   rendered/edited graph never touches this template
  */
 export function createTreeOfLife(): GraphData {
   return {
     nodes: SEPHIROT.map((node) => ({ ...node, position: { ...node.position } })),
-    edges: PATH_EDGES.map((edge) => ({ ...edge })),
+    edges: PATH_EDGES.map(
+      (edge): GraphEdge => ({
+        id: edge.id,
+        endpoints: [edge.endpoints[0], edge.endpoints[1]],
+      }),
+    ),
   };
 }

@@ -15,8 +15,8 @@ const chain: GraphData = {
     { id: "c", label: "C", pillar: "right", position: { x: 2, y: 0, z: 0 } },
   ],
   edges: [
-    { id: "a-b", source: "a", target: "b" },
-    { id: "b-c", source: "b", target: "c" },
+    { id: "a-b", endpoints: ["a", "b"] },
+    { id: "b-c", endpoints: ["b", "c"] },
   ],
 };
 
@@ -29,7 +29,7 @@ describe("nodesById", () => {
 });
 
 describe("edgesForNode", () => {
-  test("returns every incident edge, whether the node is source or target", () => {
+  test("returns every incident edge, in either endpoint position", () => {
     expect(edgesForNode(chain, "b").map((edge) => edge.id)).toEqual([
       "a-b",
       "b-c",
@@ -55,7 +55,7 @@ describe("validateGraph", () => {
   test("flags an edge that references a missing node", () => {
     const broken: GraphData = {
       nodes: chain.nodes,
-      edges: [{ id: "a-x", source: "a", target: "x" }],
+      edges: [{ id: "a-x", endpoints: ["a", "x"] }],
     };
     expect(validateGraph(broken)).toContain(
       "Edge a-x references missing node: x",
@@ -73,7 +73,7 @@ describe("validateGraph", () => {
   test("flags a self-loop", () => {
     const looped: GraphData = {
       nodes: chain.nodes,
-      edges: [{ id: "a-a", source: "a", target: "a" }],
+      edges: [{ id: "a-a", endpoints: ["a", "a"] }],
     };
     expect(validateGraph(looped)).toContain("Self-loop on node: a");
   });

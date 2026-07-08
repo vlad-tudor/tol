@@ -24,9 +24,10 @@ describe("Tree of Life dataset", () => {
     const tree = createTreeOfLife();
     const ids = new Set(tree.nodes.map((node) => node.id));
     for (const edge of tree.edges) {
-      expect(ids.has(edge.source)).toBe(true);
-      expect(ids.has(edge.target)).toBe(true);
-      expect(edge.source).not.toBe(edge.target);
+      const [from, to] = edge.endpoints;
+      expect(ids.has(from)).toBe(true);
+      expect(ids.has(to)).toBe(true);
+      expect(from).not.toBe(to);
     }
   });
 

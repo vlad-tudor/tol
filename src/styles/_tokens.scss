@@ -1,4 +1,4 @@
-// Design tokens — the single source for colour and type. Everything visual
-// references these so the palette can shift in one place as the UI grows.
-$color-void: #05050a;
+// Design tokens for non-3D chrome only. All 3D and shared colours live in the
+// TypeScript palette (src/theme/palette.ts) and reach the DOM as CSS custom
+// properties (e.g. var(--color-void)); SCSS never re-declares a colour.
 $font-sans: system-ui, sans-serif;

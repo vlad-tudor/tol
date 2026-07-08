@@ -14,7 +14,7 @@ body,
 
 body {
   overflow: hidden;
-  background: $color-void;
+  background: var(--color-void);
   font-family: $font-sans;
 }
 

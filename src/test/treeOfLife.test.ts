@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { validateGraph } from "~/graph/graph";
+import { nodesById, validateGraph } from "~/graph/graph";
 import { createTreeOfLife } from "~/graph/treeOfLife";
 
 describe("Tree of Life dataset", () => {
@@ -14,10 +14,14 @@ describe("Tree of Life dataset", () => {
     expect(validateGraph(createTreeOfLife())).toEqual([]);
   });
 
-  test("starts flat on the z = 0 plane", () => {
-    for (const node of createTreeOfLife().nodes) {
-      expect(node.position.z).toBe(0);
-    }
+  test("crown and kingdom anchor the plane; the pillars lean into depth", () => {
+    const nodes = nodesById(createTreeOfLife());
+    expect(nodes.get("keter")?.position.z).toBe(0);
+    expect(nodes.get("malkuth")?.position.z).toBe(0);
+    expect(nodes.get("tiferet")?.position.z).toBeGreaterThan(0);
+    expect(nodes.get("yesod")?.position.z).toBeGreaterThan(0);
+    expect(nodes.get("binah")?.position.z).toBeLessThan(0);
+    expect(nodes.get("chesed")?.position.z).toBeLessThan(0);
   });
 
   test("every path connects two distinct, existing nodes", () => {

@@ -41,9 +41,12 @@ describe("Tree of Life dataset", () => {
     expect(keter?.attributions?.name).toBe("Keter");
     expect(keter?.attributions?.number).toBe("1");
 
+    expect(keter?.attributions?.hebrew).toBe("כתר");
+
     const firstPath = tree.edges[0]; // keter–chokmah
     expect(firstPath.attributions?.letterName).toBe("Aleph");
     expect(firstPath.attributions?.pathNumber).toBe("11");
+    expect(firstPath.attributions?.hebrewLetter).toBe("א");
   });
 
   test("each call returns an independent copy", () => {

@@ -1,22 +1,39 @@
-import { onCleanup, onMount } from "solid-js";
+import { type Accessor, createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import type { Group } from "three";
 
+import type { GraphData } from "~/graph/types";
 import { createTreeOfLife } from "~/graph/treeOfLife";
-import { createGraphObject } from "~/three/graphMesh";
+import { applyLabels, createGraphObject } from "~/three/graphMesh";
 import { SceneController } from "~/three/SceneController";
 
+interface SceneProps {
+  nodeKeys: Accessor<Set<string>>;
+  edgeKeys: Accessor<Set<string>>;
+}
+
 /**
- * Solid host for the three.js scene. Owns the mount element's lifecycle, builds
- * the Tree of Life's meshes, and hands them to the {@link SceneController} stage
- * through its public seam.
+ * Solid host for the three.js scene. Mounts the stage and the graph geometry,
+ * then keeps the labels in sync with the visibility signals via an effect —
+ * the reactive → imperative bridge.
  */
-export function Scene() {
+export function Scene(props: SceneProps) {
   let host!: HTMLDivElement;
+  const [rendered, setRendered] = createSignal<{ group: Group; graph: GraphData }>();
 
   onMount(() => {
     const controller = new SceneController(host);
-    controller.add(createGraphObject(createTreeOfLife()));
+    const graph = createTreeOfLife();
+    const group = createGraphObject(graph);
+    controller.add(group);
     controller.start();
+    setRendered({ group, graph });
     onCleanup(() => controller.dispose());
+  });
+
+  createEffect(() => {
+    const state = rendered();
+    if (!state) return;
+    applyLabels(state.group, state.graph, props.nodeKeys(), props.edgeKeys());
   });
 
   return <div class="scene" ref={host} />;

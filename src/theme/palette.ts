@@ -30,6 +30,8 @@ export function toCssHex(color: number): string {
 /** The palette colours the DOM also needs, keyed by CSS custom property name. */
 const CSS_COLOR_VARIABLES: Record<string, number> = {
   "--color-void": palette.void,
+  "--color-node": palette.node,
+  "--color-edge": palette.edge,
 };
 
 /**

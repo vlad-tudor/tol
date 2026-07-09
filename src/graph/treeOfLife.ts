@@ -29,73 +29,84 @@ const PILLAR_OFFSET = 1.6; // ±X distance of the side pillars from the centre
 const CENTRAL_DEPTH = 0.6; // +Z, toward the viewer — the middle pillar leans forward
 const SIDE_DEPTH = -0.6; // -Z, away from the viewer — the side pillars lean back
 
-function nodeAttributions(name: string, number: number): Attributions {
+function nodeAttributions(
+  name: string,
+  number: number,
+  hebrew: string,
+): Attributions {
   return {
     [NodeAttributionKey.Name]: name,
     [NodeAttributionKey.Number]: String(number),
+    [NodeAttributionKey.Hebrew]: hebrew,
   };
 }
 
-function edgeAttributions(letterName: string, pathNumber: number): Attributions {
+function edgeAttributions(
+  letterName: string,
+  pathNumber: number,
+  hebrewLetter: string,
+): Attributions {
   return {
     [EdgeAttributionKey.LetterName]: letterName,
     [EdgeAttributionKey.PathNumber]: String(pathNumber),
+    [EdgeAttributionKey.HebrewLetter]: hebrewLetter,
   };
 }
 
 // Positions are centred on the origin so the figure frames itself under the
 // default camera target. Left pillar x < 0, right pillar x > 0, middle at 0.
 const SEPHIROT: GraphNode[] = [
-  { id: "keter", pillar: PillarPosition.Middle, position: { x: 0, y: 5, z: 0 }, attributions: nodeAttributions("Keter", 1) },
-  { id: "chokmah", pillar: PillarPosition.Right, position: { x: PILLAR_OFFSET, y: 3.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Chokmah", 2) },
-  { id: "binah", pillar: PillarPosition.Left, position: { x: -PILLAR_OFFSET, y: 3.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Binah", 3) },
-  { id: "chesed", pillar: PillarPosition.Right, position: { x: PILLAR_OFFSET, y: 1.2, z: SIDE_DEPTH }, attributions: nodeAttributions("Chesed", 4) },
-  { id: "gevurah", pillar: PillarPosition.Left, position: { x: -PILLAR_OFFSET, y: 1.2, z: SIDE_DEPTH }, attributions: nodeAttributions("Gevurah", 5) },
-  { id: "tiferet", pillar: PillarPosition.Middle, position: { x: 0, y: 0, z: CENTRAL_DEPTH }, attributions: nodeAttributions("Tiferet", 6) },
-  { id: "netzach", pillar: PillarPosition.Right, position: { x: PILLAR_OFFSET, y: -1.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Netzach", 7) },
-  { id: "hod", pillar: PillarPosition.Left, position: { x: -PILLAR_OFFSET, y: -1.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Hod", 8) },
-  { id: "yesod", pillar: PillarPosition.Middle, position: { x: 0, y: -3.2, z: CENTRAL_DEPTH }, attributions: nodeAttributions("Yesod", 9) },
-  { id: "malkuth", pillar: PillarPosition.Middle, position: { x: 0, y: -5.8, z: 0 }, attributions: nodeAttributions("Malkuth", 10) },
+  { id: "keter", pillar: PillarPosition.Middle, position: { x: 0, y: 5, z: 0 }, attributions: nodeAttributions("Keter", 1, "כתר") },
+  { id: "chokmah", pillar: PillarPosition.Right, position: { x: PILLAR_OFFSET, y: 3.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Chokmah", 2, "חכמה") },
+  { id: "binah", pillar: PillarPosition.Left, position: { x: -PILLAR_OFFSET, y: 3.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Binah", 3, "בינה") },
+  { id: "chesed", pillar: PillarPosition.Right, position: { x: PILLAR_OFFSET, y: 1.2, z: SIDE_DEPTH }, attributions: nodeAttributions("Chesed", 4, "חסד") },
+  { id: "gevurah", pillar: PillarPosition.Left, position: { x: -PILLAR_OFFSET, y: 1.2, z: SIDE_DEPTH }, attributions: nodeAttributions("Gevurah", 5, "גבורה") },
+  { id: "tiferet", pillar: PillarPosition.Middle, position: { x: 0, y: 0, z: CENTRAL_DEPTH }, attributions: nodeAttributions("Tiferet", 6, "תפארת") },
+  { id: "netzach", pillar: PillarPosition.Right, position: { x: PILLAR_OFFSET, y: -1.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Netzach", 7, "נצח") },
+  { id: "hod", pillar: PillarPosition.Left, position: { x: -PILLAR_OFFSET, y: -1.6, z: SIDE_DEPTH }, attributions: nodeAttributions("Hod", 8, "הוד") },
+  { id: "yesod", pillar: PillarPosition.Middle, position: { x: 0, y: -3.2, z: CENTRAL_DEPTH }, attributions: nodeAttributions("Yesod", 9, "יסוד") },
+  { id: "malkuth", pillar: PillarPosition.Middle, position: { x: 0, y: -5.8, z: 0 }, attributions: nodeAttributions("Malkuth", 10, "מלכות") },
 ];
 
-// The twenty-two paths, as unordered node-id pairs with their letter and number
-// attributions. Edge ids are derived from the endpoints so the two
-// representations can never drift apart.
+// The twenty-two paths, as unordered node-id pairs with their letter, number,
+// and Hebrew-letter attributions. Edge ids are derived from the endpoints so
+// the two representations can never drift apart.
 const PATHS: ReadonlyArray<{
   from: string;
   to: string;
   letterName: string;
   pathNumber: number;
+  hebrewLetter: string;
 }> = [
-  { from: "keter", to: "chokmah", letterName: "Aleph", pathNumber: 11 },
-  { from: "keter", to: "binah", letterName: "Beth", pathNumber: 12 },
-  { from: "keter", to: "tiferet", letterName: "Gimel", pathNumber: 13 },
-  { from: "chokmah", to: "binah", letterName: "Daleth", pathNumber: 14 },
-  { from: "chokmah", to: "chesed", letterName: "Vav", pathNumber: 16 },
-  { from: "chokmah", to: "tiferet", letterName: "Heh", pathNumber: 15 },
-  { from: "binah", to: "gevurah", letterName: "Cheth", pathNumber: 18 },
-  { from: "binah", to: "tiferet", letterName: "Zayin", pathNumber: 17 },
-  { from: "chesed", to: "gevurah", letterName: "Teth", pathNumber: 19 },
-  { from: "chesed", to: "tiferet", letterName: "Yod", pathNumber: 20 },
-  { from: "chesed", to: "netzach", letterName: "Kaph", pathNumber: 21 },
-  { from: "gevurah", to: "tiferet", letterName: "Lamed", pathNumber: 22 },
-  { from: "gevurah", to: "hod", letterName: "Mem", pathNumber: 23 },
-  { from: "tiferet", to: "netzach", letterName: "Nun", pathNumber: 24 },
-  { from: "tiferet", to: "hod", letterName: "Ayin", pathNumber: 26 },
-  { from: "tiferet", to: "yesod", letterName: "Samekh", pathNumber: 25 },
-  { from: "netzach", to: "hod", letterName: "Peh", pathNumber: 27 },
-  { from: "netzach", to: "yesod", letterName: "Tzaddi", pathNumber: 28 },
-  { from: "netzach", to: "malkuth", letterName: "Qoph", pathNumber: 29 },
-  { from: "hod", to: "yesod", letterName: "Resh", pathNumber: 30 },
-  { from: "hod", to: "malkuth", letterName: "Shin", pathNumber: 31 },
-  { from: "yesod", to: "malkuth", letterName: "Tav", pathNumber: 32 },
+  { from: "keter", to: "chokmah", letterName: "Aleph", pathNumber: 11, hebrewLetter: "א" },
+  { from: "keter", to: "binah", letterName: "Beth", pathNumber: 12, hebrewLetter: "ב" },
+  { from: "keter", to: "tiferet", letterName: "Gimel", pathNumber: 13, hebrewLetter: "ג" },
+  { from: "chokmah", to: "binah", letterName: "Daleth", pathNumber: 14, hebrewLetter: "ד" },
+  { from: "chokmah", to: "chesed", letterName: "Vav", pathNumber: 16, hebrewLetter: "ו" },
+  { from: "chokmah", to: "tiferet", letterName: "Heh", pathNumber: 15, hebrewLetter: "ה" },
+  { from: "binah", to: "gevurah", letterName: "Cheth", pathNumber: 18, hebrewLetter: "ח" },
+  { from: "binah", to: "tiferet", letterName: "Zayin", pathNumber: 17, hebrewLetter: "ז" },
+  { from: "chesed", to: "gevurah", letterName: "Teth", pathNumber: 19, hebrewLetter: "ט" },
+  { from: "chesed", to: "tiferet", letterName: "Yod", pathNumber: 20, hebrewLetter: "י" },
+  { from: "chesed", to: "netzach", letterName: "Kaph", pathNumber: 21, hebrewLetter: "כ" },
+  { from: "gevurah", to: "tiferet", letterName: "Lamed", pathNumber: 22, hebrewLetter: "ל" },
+  { from: "gevurah", to: "hod", letterName: "Mem", pathNumber: 23, hebrewLetter: "מ" },
+  { from: "tiferet", to: "netzach", letterName: "Nun", pathNumber: 24, hebrewLetter: "נ" },
+  { from: "tiferet", to: "hod", letterName: "Ayin", pathNumber: 26, hebrewLetter: "ע" },
+  { from: "tiferet", to: "yesod", letterName: "Samekh", pathNumber: 25, hebrewLetter: "ס" },
+  { from: "netzach", to: "hod", letterName: "Peh", pathNumber: 27, hebrewLetter: "פ" },
+  { from: "netzach", to: "yesod", letterName: "Tzaddi", pathNumber: 28, hebrewLetter: "צ" },
+  { from: "netzach", to: "malkuth", letterName: "Qoph", pathNumber: 29, hebrewLetter: "ק" },
+  { from: "hod", to: "yesod", letterName: "Resh", pathNumber: 30, hebrewLetter: "ר" },
+  { from: "hod", to: "malkuth", letterName: "Shin", pathNumber: 31, hebrewLetter: "ש" },
+  { from: "yesod", to: "malkuth", letterName: "Tav", pathNumber: 32, hebrewLetter: "ת" },
 ];
 
 const PATH_EDGES: GraphEdge[] = PATHS.map(
-  ({ from, to, letterName, pathNumber }): GraphEdge => ({
+  ({ from, to, letterName, pathNumber, hebrewLetter }): GraphEdge => ({
     id: `${from}-${to}`,
     endpoints: [from, to],
-    attributions: edgeAttributions(letterName, pathNumber),
+    attributions: edgeAttributions(letterName, pathNumber, hebrewLetter),
   }),
 );
 

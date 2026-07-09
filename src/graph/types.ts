@@ -29,6 +29,7 @@ export type Attributions = Record<string, string>;
 export const NodeAttributionKey = {
   Name: "name",
   Number: "number",
+  Hebrew: "hebrew",
 } as const;
 
 export type NodeAttributionKey =
@@ -38,6 +39,7 @@ export type NodeAttributionKey =
 export const EdgeAttributionKey = {
   LetterName: "letterName",
   PathNumber: "pathNumber",
+  HebrewLetter: "hebrewLetter",
 } as const;
 
 export type EdgeAttributionKey =

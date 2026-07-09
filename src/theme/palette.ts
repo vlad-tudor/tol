@@ -13,6 +13,8 @@ export const palette = {
   /** Path tubes. */
   edge: 0x8a7fbf,
   edgeEmissive: 0x141024,
+  /** Path labels — a lighter lavender so they read clearly over the tubes. */
+  edgeLabel: 0xc9bff5,
   /** Neutral white, for lighting. */
   light: 0xffffff,
 } as const;

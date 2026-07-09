@@ -25,7 +25,7 @@ import {
 
 // Layout parameters, tuned by eye. Middle-pillar nodes sit at x = 0; the side
 // pillars stand PILLAR_OFFSET to either side.
-const PILLAR_OFFSET = 1.6; // ±X distance of the side pillars from the centre
+const PILLAR_OFFSET = 2.2; // ±X distance of the side pillars from the centre
 const CENTRAL_DEPTH = 0.6; // +Z, toward the viewer — the middle pillar leans forward
 const SIDE_DEPTH = -0.6; // -Z, away from the viewer — the side pillars lean back
 

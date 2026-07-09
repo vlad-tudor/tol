@@ -2,10 +2,16 @@ import { Group, type Object3D, Sprite } from "three";
 
 import { nodesById } from "~/graph/graph";
 import type { Attributions, GraphData } from "~/graph/types";
-import { createLabel } from "~/three/label";
+import { createLabel, type LabelStyle } from "~/three/label";
 import { createSphere, createTube } from "~/three/meshes";
+import { palette } from "~/theme/palette";
 
 const NODE_LABEL_GAP = 0.65; // world units from a node's centre to the label's base
+
+// Labels take the colour of the element they name, and paths render a touch
+// smaller — they're secondary, and there are twenty-two of them.
+const NODE_LABEL_STYLE: LabelStyle = { color: palette.node, lineWorldHeight: 0.42 };
+const EDGE_LABEL_STYLE: LabelStyle = { color: palette.edgeLabel, lineWorldHeight: 0.34 };
 
 /**
  * Build the geometry of a graph: one sphere per node, one tube per edge, all
@@ -63,7 +69,8 @@ export function applyLabels(
   for (const node of graph.nodes) {
     const mesh = meshById.get(node.id);
     if (!mesh) continue;
-    setLabel(mesh, visibleLines(node.attributions, nodeKeys), (label) => {
+    const lines = visibleLines(node.attributions, nodeKeys);
+    setLabel(mesh, lines, NODE_LABEL_STYLE, (label) => {
       label.position.set(0, NODE_LABEL_GAP + label.scale.y / 2, 0);
     });
   }
@@ -74,7 +81,8 @@ export function applyLabels(
     const from = nodeIndex.get(fromId);
     const to = nodeIndex.get(toId);
     if (!mesh || !from || !to) continue;
-    setLabel(mesh, visibleLines(edge.attributions, edgeKeys), (label) => {
+    const lines = visibleLines(edge.attributions, edgeKeys);
+    setLabel(mesh, lines, EDGE_LABEL_STYLE, (label) => {
       // The tube sits at the origin (its geometry holds world coords), so a
       // world-space midpoint is the label's local position.
       label.position.set(
@@ -101,6 +109,7 @@ function visibleLines(
 function setLabel(
   mesh: Object3D,
   lines: string[],
+  style: LabelStyle,
   place: (label: Sprite) => void,
 ): void {
   for (const child of [...mesh.children]) {
@@ -112,7 +121,7 @@ function setLabel(
   }
   if (lines.length === 0) return;
 
-  const label = createLabel(lines);
+  const label = createLabel(lines, style);
   place(label);
   mesh.add(label);
 }

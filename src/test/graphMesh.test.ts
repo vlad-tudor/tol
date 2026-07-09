@@ -14,4 +14,17 @@ describe("createGraphObject", () => {
     expect(names.has("keter")).toBe(true);
     expect(names.has("keter-tiferet")).toBe(true);
   });
+
+  test("parents a billboarded label to every node sphere", () => {
+    const tree = createTreeOfLife();
+    const group = createGraphObject(tree);
+    const nodeIds = new Set(tree.nodes.map((node) => node.id));
+    const spheres = group.children.filter((child) => nodeIds.has(child.name));
+
+    expect(spheres).toHaveLength(tree.nodes.length);
+    for (const sphere of spheres) {
+      expect(sphere.children).toHaveLength(1);
+      expect(sphere.children[0].type).toBe("Sprite");
+    }
+  });
 });

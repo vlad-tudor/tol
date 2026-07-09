@@ -10,9 +10,9 @@ import type { GraphData } from "~/graph/types";
 
 const chain: GraphData = {
   nodes: [
-    { id: "a", label: "A", pillar: "left", position: { x: 0, y: 0, z: 0 } },
-    { id: "b", label: "B", pillar: "middle", position: { x: 1, y: 0, z: 0 } },
-    { id: "c", label: "C", pillar: "right", position: { x: 2, y: 0, z: 0 } },
+    { id: "a", pillar: "left", position: { x: 0, y: 0, z: 0 } },
+    { id: "b", pillar: "middle", position: { x: 1, y: 0, z: 0 } },
+    { id: "c", pillar: "right", position: { x: 2, y: 0, z: 0 } },
   ],
   edges: [
     { id: "a-b", endpoints: ["a", "b"] },
@@ -24,7 +24,7 @@ describe("nodesById", () => {
   test("indexes every node by its id", () => {
     const index = nodesById(chain);
     expect(index.size).toBe(3);
-    expect(index.get("b")?.label).toBe("B");
+    expect(index.get("b")?.pillar).toBe("middle");
   });
 });
 

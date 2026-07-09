@@ -15,16 +15,11 @@ describe("createGraphObject", () => {
     expect(names.has("keter-tiferet")).toBe(true);
   });
 
-  test("parents a billboarded label to every node sphere", () => {
-    const tree = createTreeOfLife();
-    const group = createGraphObject(tree);
-    const nodeIds = new Set(tree.nodes.map((node) => node.id));
-    const spheres = group.children.filter((child) => nodeIds.has(child.name));
-
-    expect(spheres).toHaveLength(tree.nodes.length);
-    for (const sphere of spheres) {
-      expect(sphere.children).toHaveLength(1);
-      expect(sphere.children[0].type).toBe("Sprite");
+  test("gives every sphere and tube a billboarded label child", () => {
+    const group = createGraphObject(createTreeOfLife());
+    for (const mesh of group.children) {
+      expect(mesh.children).toHaveLength(1);
+      expect(mesh.children[0].type).toBe("Sprite");
     }
   });
 });

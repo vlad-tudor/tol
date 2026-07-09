@@ -18,23 +18,48 @@ export const PillarPosition = {
 
 export type Pillar = (typeof PillarPosition)[keyof typeof PillarPosition];
 
-/** A sephira: a labelled node sitting at a position on one of the pillars. */
+/**
+ * A set of named display texts attached to a node or edge — its name, its
+ * number, a Hebrew letter, and so on, keyed by attribution category. Additive:
+ * any subset can be shown at once, driven by which categories the UI toggles on.
+ */
+export type Attributions = Record<string, string>;
+
+/** The attribution categories a node can carry. */
+export const NodeAttributionKey = {
+  Name: "name",
+  Number: "number",
+} as const;
+
+export type NodeAttributionKey =
+  (typeof NodeAttributionKey)[keyof typeof NodeAttributionKey];
+
+/** The attribution categories an edge (path) can carry. */
+export const EdgeAttributionKey = {
+  LetterName: "letterName",
+  PathNumber: "pathNumber",
+} as const;
+
+export type EdgeAttributionKey =
+  (typeof EdgeAttributionKey)[keyof typeof EdgeAttributionKey];
+
+/** A sephira: a node on one of the pillars, with its display attributions. */
 export interface GraphNode {
   id: string;
-  label: string;
   pillar: Pillar;
   position: Vec3;
+  attributions?: Attributions;
 }
 
 /**
  * A path between two nodes. `endpoints` is an *unordered* pair of node ids —
  * paths on the Tree of Life have no direction, so there is no source/target.
- * The object wrapper carries the id and leaves room for future per-edge
- * metadata (Hebrew letter, Tarot attribution, colour scales).
+ * The object wrapper carries the id and the attributions.
  */
 export interface GraphEdge {
   id: string;
   endpoints: [string, string];
+  attributions?: Attributions;
 }
 
 /** A whole graph: its nodes and the edges between them. */

@@ -12,20 +12,22 @@ const FONT_SIZE = 64; // canvas px — high enough to stay crisp when scaled dow
 const FONT_FAMILY = "system-ui, sans-serif";
 const FONT_WEIGHT = 600;
 const PADDING = 12; // canvas px of breathing room around the text
-const WORLD_HEIGHT = 0.55; // on-screen height of the label, in world units
+const LINE_HEIGHT_FACTOR = 1.25; // canvas line spacing as a multiple of font size
+const LINE_WORLD_HEIGHT = 0.42; // on-screen height per line, in world units
 const RENDER_ORDER = 10; // draw after the geometry so labels sit on top
 
 /**
- * Build a billboarded text label: the text is drawn to a canvas, turned into a
- * texture, and wrapped in a Sprite so it always faces the camera — legible from
- * any orbit angle.
+ * Build a billboarded, multi-line text label: the lines are drawn stacked onto
+ * a canvas, turned into a texture, and wrapped in a Sprite so the label always
+ * faces the camera (legible from any orbit angle) and renders on top of the
+ * geometry (never occluded or clipped).
  *
- * @param text - the text to render
- * @returns a Sprite showing `text`, scaled to world units and preserving the
+ * @param lines - the text lines to stack, top to bottom
+ * @returns a Sprite showing the lines, scaled to world units and preserving the
  *   text's aspect ratio; the caller positions it. It owns its texture and
  *   material.
  */
-export function createLabel(text: string): Sprite {
+export function createLabel(lines: string[]): Sprite {
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
   if (!context) {
@@ -33,18 +35,21 @@ export function createLabel(text: string): Sprite {
   }
 
   const font = `${FONT_WEIGHT} ${FONT_SIZE}px ${FONT_FAMILY}`;
+  const lineHeight = FONT_SIZE * LINE_HEIGHT_FACTOR;
   context.font = font;
-  const textWidth = context.measureText(text).width;
+  const widest = Math.max(...lines.map((line) => context.measureText(line).width), 0);
 
-  canvas.width = Math.ceil(textWidth + PADDING * 2);
-  canvas.height = Math.ceil(FONT_SIZE + PADDING * 2);
+  canvas.width = Math.ceil(widest + PADDING * 2);
+  canvas.height = Math.ceil(lineHeight * lines.length + PADDING * 2);
 
   // Resizing the canvas resets its context, so re-apply the drawing state.
   context.font = font;
   context.fillStyle = toCssHex(palette.node);
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(text, canvas.width / 2, canvas.height / 2);
+  lines.forEach((line, index) => {
+    context.fillText(line, canvas.width / 2, PADDING + lineHeight * (index + 0.5));
+  });
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -59,7 +64,8 @@ export function createLabel(text: string): Sprite {
     depthTest: false,
   });
   const sprite = new Sprite(material);
-  sprite.scale.set(WORLD_HEIGHT * (canvas.width / canvas.height), WORLD_HEIGHT, 1);
+  const worldHeight = LINE_WORLD_HEIGHT * lines.length;
+  sprite.scale.set(worldHeight * (canvas.width / canvas.height), worldHeight, 1);
   sprite.renderOrder = RENDER_ORDER;
   return sprite;
 }

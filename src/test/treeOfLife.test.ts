@@ -35,6 +35,17 @@ describe("Tree of Life dataset", () => {
     }
   });
 
+  test("carries name/number attributions on nodes and letter/number on paths", () => {
+    const tree = createTreeOfLife();
+    const keter = nodesById(tree).get("keter");
+    expect(keter?.attributions?.name).toBe("Keter");
+    expect(keter?.attributions?.number).toBe("1");
+
+    const firstPath = tree.edges[0]; // keter–chokmah
+    expect(firstPath.attributions?.letterName).toBe("Aleph");
+    expect(firstPath.attributions?.pathNumber).toBe("11");
+  });
+
   test("each call returns an independent copy", () => {
     const first = createTreeOfLife();
     const second = createTreeOfLife();

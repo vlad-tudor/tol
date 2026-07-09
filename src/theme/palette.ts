@@ -10,6 +10,8 @@ export const palette = {
   /** Sephira spheres. */
   node: 0xf4e8c1,
   nodeEmissive: 0x2a2410,
+  /** Sephira labels — dark, to read against the ivory spheres they sit on. */
+  nodeLabel: 0x2a2410,
   /** Path tubes. */
   edge: 0x8a7fbf,
   edgeEmissive: 0x141024,

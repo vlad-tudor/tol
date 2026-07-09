@@ -6,12 +6,19 @@ import { createLabel, type LabelStyle } from "~/three/label";
 import { createSphere, createTube } from "~/three/meshes";
 import { palette } from "~/theme/palette";
 
-const NODE_LABEL_GAP = 0.65; // world units from a node's centre to the label's base
+const INITIAL_ROTATION = 0.4; // radians (~23°) — a slight spawn tilt on X and Y to reveal the depth
 
-// Labels take the colour of the element they name, and paths render a touch
-// smaller — they're secondary, and there are twenty-two of them.
-const NODE_LABEL_STYLE: LabelStyle = { color: palette.node, lineWorldHeight: 0.42 };
-const EDGE_LABEL_STYLE: LabelStyle = { color: palette.edgeLabel, lineWorldHeight: 0.34 };
+// Node labels sit on the spheres in a dark ink; path labels take the tube's
+// lighter colour and render a touch smaller — they're secondary, and there are
+// twenty-two of them.
+const NODE_LABEL_STYLE: LabelStyle = {
+  color: palette.nodeLabel,
+  lineWorldHeight: 0.42,
+};
+const EDGE_LABEL_STYLE: LabelStyle = {
+  color: palette.edgeLabel,
+  lineWorldHeight: 0.34,
+};
 
 /**
  * Build the geometry of a graph: one sphere per node, one tube per edge, all
@@ -24,6 +31,8 @@ const EDGE_LABEL_STYLE: LabelStyle = { color: palette.edgeLabel, lineWorldHeight
  */
 export function createGraphObject(graph: GraphData): Group {
   const group = new Group();
+  group.rotation.x = INITIAL_ROTATION;
+  group.rotation.y = INITIAL_ROTATION;
   const nodeIndex = nodesById(graph);
 
   for (const node of graph.nodes) {
@@ -71,7 +80,7 @@ export function applyLabels(
     if (!mesh) continue;
     const lines = visibleLines(node.attributions, nodeKeys);
     setLabel(mesh, lines, NODE_LABEL_STYLE, (label) => {
-      label.position.set(0, NODE_LABEL_GAP + label.scale.y / 2, 0);
+      label.position.set(0, 0, 0); // centred on the sphere
     });
   }
 

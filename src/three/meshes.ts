@@ -10,12 +10,12 @@ import {
 import type { Vec3 } from "~/graph/types";
 import { palette } from "~/theme/palette";
 
-const SPHERE_RADIUS = 0.5;
+const SPHERE_RADIUS = 0.7;
 const SPHERE_SEGMENTS = 32;
 const SPHERE_ROUGHNESS = 0.4;
 const SPHERE_METALNESS = 0.1;
 
-const TUBE_RADIUS = 0.08;
+const TUBE_RADIUS = 0.14;
 const TUBE_RADIAL_SEGMENTS = 8;
 const TUBE_PATH_SEGMENTS = 1; // a straight span needs only one segment
 const TUBE_ROUGHNESS = 0.6;

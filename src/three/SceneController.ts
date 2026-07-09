@@ -14,7 +14,7 @@ import { palette } from "~/theme/palette";
 const CAMERA_FOV = 50;
 const CAMERA_NEAR = 0.1;
 const CAMERA_FAR = 100;
-const CAMERA_DISTANCE = 14; // units back along +Z, framing the full tree
+const CAMERA_DISTANCE = 20; // units back along +Z, framing the full tree
 
 const AMBIENT_INTENSITY = 0.7;
 const KEY_LIGHT_INTENSITY = 2.2;

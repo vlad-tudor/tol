@@ -25,9 +25,10 @@ import {
 
 // Layout parameters, tuned by eye. Middle-pillar nodes sit at x = 0; the side
 // pillars stand PILLAR_OFFSET to either side.
-const PILLAR_OFFSET = 2.2; // ±X distance of the side pillars from the centre
+const PILLAR_OFFSET = 2.8; // ±X distance of the side pillars from the centre
 const CENTRAL_DEPTH = 0.6; // +Z, toward the viewer — the middle pillar leans forward
 const SIDE_DEPTH = -0.6; // -Z, away from the viewer — the side pillars lean back
+const LAYOUT_SCALE = 1.3; // overall spread of the X/Y layout — the gap between spheres (Z depth left as tuned)
 
 function nodeAttributions(
   name: string,
@@ -120,7 +121,11 @@ export function createTreeOfLife(): GraphData {
   return {
     nodes: SEPHIROT.map((node) => ({
       ...node,
-      position: { ...node.position },
+      position: {
+        x: node.position.x * LAYOUT_SCALE,
+        y: node.position.y * LAYOUT_SCALE,
+        z: node.position.z,
+      },
       attributions: node.attributions ? { ...node.attributions } : undefined,
     })),
     edges: PATH_EDGES.map(

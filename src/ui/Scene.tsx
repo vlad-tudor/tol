@@ -1,9 +1,10 @@
 import { type Accessor, createEffect, createSignal, onCleanup, onMount } from "solid-js";
 import type { Group } from "three";
 
-import type { GraphData } from "~/graph/types";
+import { DEFAULT_COLOUR_SCHEME } from "~/graph/colourSchemes";
 import { createTreeOfLife } from "~/graph/treeOfLife";
-import { applyLabels, createGraphObject } from "~/three/graphMesh";
+import type { GraphData } from "~/graph/types";
+import { applyColours, applyLabels, createGraphObject } from "~/three/graphMesh";
 import { SceneController } from "~/three/SceneController";
 
 interface SceneProps {
@@ -24,6 +25,7 @@ export function Scene(props: SceneProps) {
     const controller = new SceneController(host);
     const graph = createTreeOfLife();
     const group = createGraphObject(graph);
+    applyColours(group, graph, DEFAULT_COLOUR_SCHEME);
     controller.add(group);
     controller.start();
     setRendered({ group, graph });

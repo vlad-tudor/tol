@@ -1,7 +1,12 @@
-import { Group, type Object3D, Sprite } from "three";
+import { Group, Mesh, type MeshStandardMaterial, type Object3D, Sprite } from "three";
 
 import { nodesById } from "~/graph/graph";
-import type { Attributions, GraphData } from "~/graph/types";
+import {
+  type Attributions,
+  type ColourScheme,
+  EdgeAttributionKey,
+  type GraphData,
+} from "~/graph/types";
 import { createLabel, type LabelStyle } from "~/three/label";
 import { createSphere, createTube } from "~/three/meshes";
 import { palette } from "~/theme/palette";
@@ -22,12 +27,13 @@ const EDGE_LABEL_STYLE: LabelStyle = {
 
 /**
  * Build the geometry of a graph: one sphere per node, one tube per edge, all
- * parented under a single Group. Labels are *not* built here — they're applied
- * (and re-applied on toggle) by {@link applyLabels}.
+ * parented under a single Group. Labels and colours are *not* built here —
+ * they're applied (and re-applied on toggle) by {@link applyLabels} and
+ * {@link applyColours}.
  *
  * @param graph - the graph to render
  * @returns a Group holding a sphere for every node and a tube for every edge;
- *   each mesh carries its id as `name`, so labels and picking can find it
+ *   each mesh carries its id as `name`, so labels, colours, and picking find it
  */
 export function createGraphObject(graph: GraphData): Group {
   const group = new Group();
@@ -58,8 +64,8 @@ export function createGraphObject(graph: GraphData): Group {
 /**
  * (Re)build the labels on a graph's meshes to reflect which attribution
  * categories are visible. Idempotent — call it again with different sets and it
- * replaces each label. This is the bridge from the reactive visibility signals
- * to the imperative three.js scene.
+ * replaces each label. The bridge from the reactive visibility signals to the
+ * imperative three.js scene.
  *
  * @param group - a Group built by {@link createGraphObject}
  * @param graph - the graph the group was built from
@@ -100,6 +106,38 @@ export function applyLabels(
         (from.position.z + to.position.z) / 2,
       );
     });
+  }
+}
+
+/**
+ * Colour a graph's meshes from a colour scheme. Sephira colours key by node id,
+ * path colours by letter name; anything the scheme omits falls back to the
+ * palette default. The bridge from the active-scheme signal to the scene.
+ *
+ * @param group - a Group built by {@link createGraphObject}
+ * @param graph - the graph the group was built from
+ * @param scheme - the colour scheme to apply
+ */
+export function applyColours(
+  group: Group,
+  graph: GraphData,
+  scheme: ColourScheme,
+): void {
+  const meshById = new Map(group.children.map((child) => [child.name, child]));
+
+  for (const node of graph.nodes) {
+    const mesh = meshById.get(node.id);
+    if (!(mesh instanceof Mesh)) continue;
+    const colour = scheme.sephira[node.id] ?? palette.node;
+    (mesh.material as MeshStandardMaterial).color.setHex(colour);
+  }
+
+  for (const edge of graph.edges) {
+    const mesh = meshById.get(edge.id);
+    if (!(mesh instanceof Mesh)) continue;
+    const letter = edge.attributions?.[EdgeAttributionKey.LetterName];
+    const colour = (letter ? scheme.path[letter] : undefined) ?? palette.edge;
+    (mesh.material as MeshStandardMaterial).color.setHex(colour);
   }
 }
 

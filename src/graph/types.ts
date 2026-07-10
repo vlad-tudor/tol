@@ -69,3 +69,50 @@ export interface GraphData {
   nodes: GraphNode[];
   edges: GraphEdge[];
 }
+
+// --- Sources the render graph is composed from -----------------------------
+// GraphData above is the render contract. The types below are the *authoring*
+// model: a stable sephirot core, structural variants that supply the paths, and
+// colour schemes that style the result — three orthogonal axes of flexibility.
+
+/** A Hebrew letter and its path number — the identity a path carries. */
+export interface Letter {
+  name: string; // transliteration, e.g. "Aleph"
+  hebrew: string; // glyph, e.g. "א"
+  number: number; // path number, 11..32
+}
+
+/** A sephira — constant across every structural variant and colour scheme. */
+export interface Sephira {
+  id: string;
+  number: number; // 1..10
+  pillar: Pillar;
+  position: Vec3;
+  names: { latin: string; hebrew: string };
+}
+
+/** A path in a variant: the two sephirot it joins and the letter it carries. */
+export interface VariantPath {
+  endpoints: [string, string];
+  letter: Letter;
+}
+
+/** A structural variant of the tree — a named set of paths over the sephirot. */
+export interface TreeVariant {
+  id: string;
+  name: string;
+  paths: VariantPath[];
+}
+
+/**
+ * A colour scheme: colour overrides for sephirot (keyed by sephira id) and
+ * paths (keyed by letter name — colour follows the letter, so a scheme is
+ * independent of which variant is showing). Missing entries fall back to the
+ * palette defaults, so the "Default" scheme is simply empty.
+ */
+export interface ColourScheme {
+  id: string;
+  name: string;
+  sephira: Record<string, number>;
+  path: Record<string, number>;
+}

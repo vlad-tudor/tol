@@ -1,11 +1,12 @@
 import { type Component, createSignal, type Setter } from "solid-js";
 
-import { DEFAULT_COLOUR_SCHEME } from "~/graph/colourSchemes";
+import { INITIAL_COLOUR_SCHEME } from "~/graph/colourSchemes";
 import {
   type ColourScheme,
   EdgeAttributionKey,
   NodeAttributionKey,
 } from "~/graph/types";
+import { DEFAULT_STYLE, type SceneStyle } from "~/three/styles";
 import { Scene } from "~/ui/Scene";
 import { Toolbar } from "~/ui/Toolbar";
 
@@ -27,7 +28,9 @@ export const App: Component = () => {
   const [edgeKeys, setEdgeKeys] = createSignal<Set<string>>(
     new Set([EdgeAttributionKey.LetterName]),
   );
-  const [scheme, setScheme] = createSignal<ColourScheme>(DEFAULT_COLOUR_SCHEME);
+  const [scheme, setScheme] = createSignal<ColourScheme>(INITIAL_COLOUR_SCHEME);
+  const [style, setStyle] = createSignal<SceneStyle>(DEFAULT_STYLE);
+  const [nodeOutline, setNodeOutline] = createSignal(false);
 
   return (
     <>
@@ -38,8 +41,18 @@ export const App: Component = () => {
         onToggleEdge={makeToggle(setEdgeKeys)}
         scheme={scheme}
         onSelectScheme={setScheme}
+        style={style}
+        onSelectStyle={setStyle}
+        nodeOutline={nodeOutline}
+        onToggleNodeOutline={() => setNodeOutline((on) => !on)}
       />
-      <Scene nodeKeys={nodeKeys} edgeKeys={edgeKeys} scheme={scheme} />
+      <Scene
+        nodeKeys={nodeKeys}
+        edgeKeys={edgeKeys}
+        scheme={scheme}
+        style={style}
+        nodeOutline={nodeOutline}
+      />
     </>
   );
 };

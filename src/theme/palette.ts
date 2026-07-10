@@ -1,3 +1,5 @@
+import { toCssHex } from "~/theme/colour";
+
 /**
  * The single source of truth for colour across the app. Colours are authored as
  * `0xRRGGBB` numbers — three.js's native form, consumed directly by materials
@@ -7,29 +9,23 @@
 export const palette = {
   /** Scene background — the near-black "void". */
   void: 0x05050a,
-  /** Sephira spheres. */
+  /** Sephira spheres (default, uncoloured). */
   node: 0xf4e8c1,
-  nodeEmissive: 0x2a2410,
-  /** Sephira labels — dark, to read against the ivory spheres they sit on. */
-  nodeLabel: 0x2a2410,
-  /** Path tubes. */
+  /** Path tubes (default, uncoloured). */
   edge: 0x8a7fbf,
-  edgeEmissive: 0x141024,
-  /** Path labels — a lighter lavender so they read clearly over the tubes. */
-  edgeLabel: 0xc9bff5,
-  /** Neutral white, for lighting. */
+  /** Neutral white. */
   light: 0xffffff,
+  // Adaptive label inks + contours — legible on any sphere/tube colour. The
+  // node ink flips by sphere lightness; the contour is the opposite tone.
+  labelInkLight: 0xf6eed6,
+  labelInkDark: 0x241f0e,
+  labelContourDark: 0x0c0a14,
+  edgeLabelInk: 0xe6ddff,
+  edgeLabelContour: 0x0c0a16,
+  // Path label ink + contour for light backgrounds (dark ink on a pale halo).
+  edgeLabelInkLight: 0x2a2417,
+  edgeLabelContourLight: 0xf3ecda,
 } as const;
-
-/**
- * Format a `0xRRGGBB` colour number as a CSS hex string.
- *
- * @param color - a colour in `0xRRGGBB` form
- * @returns the equivalent CSS hex string, e.g. `#05050a`
- */
-export function toCssHex(color: number): string {
-  return `#${color.toString(16).padStart(6, "0")}`;
-}
 
 /** The palette colours the DOM also needs, keyed by CSS custom property name. */
 const CSS_COLOR_VARIABLES: Record<string, number> = {

@@ -13,8 +13,8 @@ export const DEFAULT_SCHEME: ColourScheme = {
   path: {},
 };
 
-/** King scale (Atziluth) — the pure, primary world. */
-const KING_SCALE: ColourScheme = {
+/** King scale (Atziluth) — the pure, primary world. The default on load. */
+export const KING_SCALE: ColourScheme = {
   id: "king",
   name: "King (Atziluth)",
   sephira: {
@@ -190,5 +190,5 @@ export const COLOUR_SCHEMES: ColourScheme[] = [
   PRINCESS_SCALE,
 ];
 
-/** The scheme shown by default. */
-export const DEFAULT_COLOUR_SCHEME = DEFAULT_SCHEME;
+/** The scheme active on load. */
+export const INITIAL_COLOUR_SCHEME = KING_SCALE;

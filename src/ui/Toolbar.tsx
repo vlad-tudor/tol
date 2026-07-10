@@ -6,6 +6,7 @@ import {
   EdgeAttributionKey,
   NodeAttributionKey,
 } from "~/graph/types";
+import { SCENE_STYLES, type SceneStyle } from "~/three/styles";
 import "~/ui/Toolbar.scss";
 
 interface ToolbarProps {
@@ -15,6 +16,10 @@ interface ToolbarProps {
   onToggleEdge: (key: string) => void;
   scheme: Accessor<ColourScheme>;
   onSelectScheme: (scheme: ColourScheme) => void;
+  style: Accessor<SceneStyle>;
+  onSelectStyle: (style: SceneStyle) => void;
+  nodeOutline: Accessor<boolean>;
+  onToggleNodeOutline: () => void;
 }
 
 interface Category {
@@ -34,7 +39,7 @@ const EDGE_CATEGORIES: Category[] = [
   { key: EdgeAttributionKey.HebrewLetter, label: "Hebrew" },
 ];
 
-/** Top-bar controls: label attribution toggles and colour-scheme selection. */
+/** Top-bar controls: label toggles, colour scheme, background, and halo. */
 export function Toolbar(props: ToolbarProps) {
   return (
     <div class="toolbar">
@@ -85,6 +90,35 @@ export function Toolbar(props: ToolbarProps) {
             </label>
           )}
         </For>
+      </div>
+
+      <div class="group">
+        <span class="group-title">Background</span>
+        <For each={SCENE_STYLES}>
+          {(style) => (
+            <label class="toggle">
+              <input
+                type="radio"
+                name="scene-style"
+                checked={props.style().id === style.id}
+                onChange={() => props.onSelectStyle(style)}
+              />
+              <span>{style.name}</span>
+            </label>
+          )}
+        </For>
+      </div>
+
+      <div class="group">
+        <span class="group-title">Sphere</span>
+        <label class="toggle">
+          <input
+            type="checkbox"
+            checked={props.nodeOutline()}
+            onChange={() => props.onToggleNodeOutline()}
+          />
+          <span>Halo</span>
+        </label>
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ const stubContext = {
   textBaseline: "",
   measureText: (text: string) => ({ width: text.length * 10 }),
   fillText: () => {},
+  strokeText: () => {},
 };
 HTMLCanvasElement.prototype.getContext = (() =>
   stubContext) as unknown as HTMLCanvasElement["getContext"];

@@ -1,13 +1,20 @@
 import { type Accessor, For } from "solid-js";
 
-import { EdgeAttributionKey, NodeAttributionKey } from "~/graph/types";
-import "~/ui/LabelMenu.scss";
+import { COLOUR_SCHEMES } from "~/graph/colourSchemes";
+import {
+  type ColourScheme,
+  EdgeAttributionKey,
+  NodeAttributionKey,
+} from "~/graph/types";
+import "~/ui/Toolbar.scss";
 
-interface LabelMenuProps {
+interface ToolbarProps {
   nodeKeys: Accessor<Set<string>>;
   edgeKeys: Accessor<Set<string>>;
   onToggleNode: (key: string) => void;
   onToggleEdge: (key: string) => void;
+  scheme: Accessor<ColourScheme>;
+  onSelectScheme: (scheme: ColourScheme) => void;
 }
 
 interface Category {
@@ -27,10 +34,10 @@ const EDGE_CATEGORIES: Category[] = [
   { key: EdgeAttributionKey.HebrewLetter, label: "Hebrew" },
 ];
 
-/** Top-bar menu toggling which label attributions show on sephirot and paths. */
-export function LabelMenu(props: LabelMenuProps) {
+/** Top-bar controls: label attribution toggles and colour-scheme selection. */
+export function Toolbar(props: ToolbarProps) {
   return (
-    <div class="label-menu">
+    <div class="toolbar">
       <div class="group">
         <span class="group-title">Sefirot</span>
         <For each={NODE_CATEGORIES}>
@@ -58,6 +65,23 @@ export function LabelMenu(props: LabelMenuProps) {
                 onChange={() => props.onToggleEdge(category.key)}
               />
               <span>{category.label}</span>
+            </label>
+          )}
+        </For>
+      </div>
+
+      <div class="group">
+        <span class="group-title">Colours</span>
+        <For each={COLOUR_SCHEMES}>
+          {(scheme) => (
+            <label class="toggle">
+              <input
+                type="radio"
+                name="colour-scheme"
+                checked={props.scheme().id === scheme.id}
+                onChange={() => props.onSelectScheme(scheme)}
+              />
+              <span>{scheme.name}</span>
             </label>
           )}
         </For>

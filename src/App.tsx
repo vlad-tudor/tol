@@ -1,8 +1,13 @@
 import { type Component, createSignal, type Setter } from "solid-js";
 
-import { EdgeAttributionKey, NodeAttributionKey } from "~/graph/types";
-import { LabelMenu } from "~/ui/LabelMenu";
+import { DEFAULT_COLOUR_SCHEME } from "~/graph/colourSchemes";
+import {
+  type ColourScheme,
+  EdgeAttributionKey,
+  NodeAttributionKey,
+} from "~/graph/types";
 import { Scene } from "~/ui/Scene";
+import { Toolbar } from "~/ui/Toolbar";
 
 /** Toggle a key in a Set-valued signal, replacing the Set so Solid reacts. */
 function makeToggle(setter: Setter<Set<string>>): (key: string) => void {
@@ -22,16 +27,19 @@ export const App: Component = () => {
   const [edgeKeys, setEdgeKeys] = createSignal<Set<string>>(
     new Set([EdgeAttributionKey.LetterName]),
   );
+  const [scheme, setScheme] = createSignal<ColourScheme>(DEFAULT_COLOUR_SCHEME);
 
   return (
     <>
-      <LabelMenu
+      <Toolbar
         nodeKeys={nodeKeys}
         edgeKeys={edgeKeys}
         onToggleNode={makeToggle(setNodeKeys)}
         onToggleEdge={makeToggle(setEdgeKeys)}
+        scheme={scheme}
+        onSelectScheme={setScheme}
       />
-      <Scene nodeKeys={nodeKeys} edgeKeys={edgeKeys} />
+      <Scene nodeKeys={nodeKeys} edgeKeys={edgeKeys} scheme={scheme} />
     </>
   );
 };

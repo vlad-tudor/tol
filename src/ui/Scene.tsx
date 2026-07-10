@@ -1,21 +1,21 @@
 import { type Accessor, createEffect, createSignal, onCleanup, onMount } from "solid-js";
 import type { Group } from "three";
 
-import { DEFAULT_COLOUR_SCHEME } from "~/graph/colourSchemes";
 import { createTreeOfLife } from "~/graph/treeOfLife";
-import type { GraphData } from "~/graph/types";
+import type { ColourScheme, GraphData } from "~/graph/types";
 import { applyColours, applyLabels, createGraphObject } from "~/three/graphMesh";
 import { SceneController } from "~/three/SceneController";
 
 interface SceneProps {
   nodeKeys: Accessor<Set<string>>;
   edgeKeys: Accessor<Set<string>>;
+  scheme: Accessor<ColourScheme>;
 }
 
 /**
  * Solid host for the three.js scene. Mounts the stage and the graph geometry,
- * then keeps the labels in sync with the visibility signals via an effect —
- * the reactive → imperative bridge.
+ * then keeps labels and colours in sync with their signals via effects — the
+ * reactive → imperative bridge.
  */
 export function Scene(props: SceneProps) {
   let host!: HTMLDivElement;
@@ -25,7 +25,6 @@ export function Scene(props: SceneProps) {
     const controller = new SceneController(host);
     const graph = createTreeOfLife();
     const group = createGraphObject(graph);
-    applyColours(group, graph, DEFAULT_COLOUR_SCHEME);
     controller.add(group);
     controller.start();
     setRendered({ group, graph });
@@ -36,6 +35,12 @@ export function Scene(props: SceneProps) {
     const state = rendered();
     if (!state) return;
     applyLabels(state.group, state.graph, props.nodeKeys(), props.edgeKeys());
+  });
+
+  createEffect(() => {
+    const state = rendered();
+    if (!state) return;
+    applyColours(state.group, state.graph, props.scheme());
   });
 
   return <div class="scene" ref={host} />;

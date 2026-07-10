@@ -15,16 +15,11 @@ export const palette = {
   edge: 0x8a7fbf,
   /** Neutral white. */
   light: 0xffffff,
-  // Adaptive label inks + contours — legible on any sphere/tube colour. The
-  // node ink flips by sphere lightness; the contour is the opposite tone.
+  // Adaptive label inks + contours — legible on any fill colour. The ink flips
+  // by the element's lightness; the contour is the opposite tone.
   labelInkLight: 0xf6eed6,
   labelInkDark: 0x241f0e,
   labelContourDark: 0x0c0a14,
-  edgeLabelInk: 0xe6ddff,
-  edgeLabelContour: 0x0c0a16,
-  // Path label ink + contour for light backgrounds (dark ink on a pale halo).
-  edgeLabelInkLight: 0x2a2417,
-  edgeLabelContourLight: 0xf3ecda,
 } as const;
 
 /** The palette colours the DOM also needs, keyed by CSS custom property name. */

@@ -36,6 +36,9 @@ export interface SceneStyle {
   node: MaterialSpec;
   tube: MaterialSpec;
   nodeOutlineColour: number;
+  /** Neutral path fill + border (paths are uncoloured until selection mode). */
+  pathFill: number;
+  pathBorder: number;
 }
 
 /** Moon — the cool, silvery dark default. */
@@ -58,6 +61,8 @@ export const MOON_STYLE: SceneStyle = {
   node: { roughness: 0.82, envMapIntensity: 0.32, emissiveIntensity: 0.24 },
   tube: { roughness: 0.85, envMapIntensity: 0.26, emissiveIntensity: 0.28 },
   nodeOutlineColour: 0xd8c48a, // gold leaf
+  pathFill: 0xe6ebf5, // cool near-white
+  pathBorder: 0x1a1e2a, // soft dark edge, legible on the dark backdrop
 };
 
 /** Parchment — warm illuminated-manuscript light backdrop. */
@@ -81,6 +86,8 @@ export const PARCHMENT_STYLE: SceneStyle = {
   node: { roughness: 0.85, envMapIntensity: 0.25, emissiveIntensity: 0.1 },
   tube: { roughness: 0.85, envMapIntensity: 0.22, emissiveIntensity: 0.14 },
   nodeOutlineColour: 0x5c4f30, // sepia ink
+  pathFill: 0xfaf5e9, // warm white
+  pathBorder: 0x1c160c, // near-black ink on the pale paper
 };
 
 /** All available scene styles. */

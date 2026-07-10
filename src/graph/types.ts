@@ -115,4 +115,6 @@ export interface ColourScheme {
   name: string;
   sephira: Record<string, number>;
   path: Record<string, number>;
+  /** The "ink" scheme: render spheres and paths white with a dark border. */
+  neutral?: boolean;
 }

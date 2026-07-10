@@ -21,7 +21,9 @@ const TUBE_RADIUS = 0.2;
 const TUBE_RADIAL_SEGMENTS = 16;
 const TUBE_PATH_SEGMENTS = 1; // a straight span needs only one segment
 
-const OUTLINE_SCALE = 1.05; // inverted-hull radius multiple — a thin contour
+// The rim width of the inverted-hull contours, in world units — shared by the
+// sphere outline and the tube border so both read at the same thickness.
+const BORDER_THICKNESS = 0.09;
 
 /**
  * Build the sphere mesh for a node.
@@ -52,7 +54,11 @@ export function createSphere(position: Vec3): Mesh {
  * @param to - the other end
  * @returns a `TubeGeometry` following the straight line from `from` to `to`
  */
-export function createTubeGeometry(from: Vec3, to: Vec3): TubeGeometry {
+export function createTubeGeometry(
+  from: Vec3,
+  to: Vec3,
+  radius: number = TUBE_RADIUS,
+): TubeGeometry {
   const curve = new LineCurve3(
     new Vector3(from.x, from.y, from.z),
     new Vector3(to.x, to.y, to.z),
@@ -60,7 +66,7 @@ export function createTubeGeometry(from: Vec3, to: Vec3): TubeGeometry {
   return new TubeGeometry(
     curve,
     TUBE_PATH_SEGMENTS,
-    TUBE_RADIUS,
+    radius,
     TUBE_RADIAL_SEGMENTS,
     false,
   );
@@ -80,6 +86,22 @@ export function createTube(from: Vec3, to: Vec3): Mesh {
 }
 
 /**
+ * Build a tube's border — a slightly fatter back-facing tube along the same
+ * span, reading as a contour line around the path. Parent it to the tube.
+ *
+ * @param from - the first node's centre
+ * @param to - the second node's centre
+ * @param colour - the border colour (from the active style)
+ * @returns a `Mesh` to parent to the tube
+ */
+export function createTubeBorder(from: Vec3, to: Vec3, colour: number): Mesh {
+  const geometry = createTubeGeometry(from, to, TUBE_RADIUS + BORDER_THICKNESS);
+  const material = new MeshBasicMaterial({ color: colour, side: BackSide });
+  material.toneMapped = false;
+  return new Mesh(geometry, material);
+}
+
+/**
  * Build a sphere's halo — an inverted hull that reads as a thin contour line
  * around the silhouette from any angle.
  *
@@ -88,7 +110,7 @@ export function createTube(from: Vec3, to: Vec3): Mesh {
  */
 export function createNodeOutline(colour: number): Mesh {
   const geometry = new SphereGeometry(
-    SPHERE_RADIUS * OUTLINE_SCALE,
+    SPHERE_RADIUS + BORDER_THICKNESS,
     SPHERE_SEGMENTS,
     SPHERE_SEGMENTS,
   );

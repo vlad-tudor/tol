@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { Color, type Mesh, type MeshStandardMaterial } from "three";
+import {
+  Color,
+  type Mesh,
+  type MeshBasicMaterial,
+  type MeshStandardMaterial,
+  Sprite,
+} from "three";
 
 import { DEFAULT_SCHEME } from "~/graph/colourSchemes";
 import { createTreeOfLife } from "~/graph/treeOfLife";
@@ -25,7 +31,8 @@ describe("createGraphObject", () => {
     expect(names.has("keter-tiferet")).toBe(true);
 
     for (const mesh of group.children) {
-      expect(mesh.children).toHaveLength(0);
+      const labels = mesh.children.filter((child) => child instanceof Sprite);
+      expect(labels).toHaveLength(0);
     }
   });
 });
@@ -43,8 +50,8 @@ describe("applyLabels", () => {
       DEFAULT_STYLE,
     );
     for (const mesh of group.children) {
-      expect(mesh.children).toHaveLength(1);
-      expect(mesh.children[0].type).toBe("Sprite");
+      const labels = mesh.children.filter((child) => child instanceof Sprite);
+      expect(labels).toHaveLength(1);
     }
   });
 
@@ -63,51 +70,77 @@ describe("applyLabels", () => {
     applyLabels(group, tree, new Set(), new Set(), DEFAULT_SCHEME, DEFAULT_STYLE);
 
     for (const mesh of group.children) {
-      expect(mesh.children).toHaveLength(0);
+      const labels = mesh.children.filter((child) => child instanceof Sprite);
+      expect(labels).toHaveLength(0);
     }
   });
 });
 
 describe("applyColours", () => {
-  test("colours meshes from the scheme, falling back to the palette default", () => {
+  const hexOf = (group: ReturnType<typeof createGraphObject>, name: string): number => {
+    const mesh = group.children.find((child) => child.name === name) as Mesh;
+    return (mesh.material as MeshStandardMaterial).color.getHex();
+  };
+
+  test("a coloured scheme paints sephirot and paths and hides the border", () => {
     const tree = createTreeOfLife();
     const group = createGraphObject(tree);
     applyColours(
       group,
       tree,
-      { id: "t", name: "T", sephira: { keter: 0xff0000 }, path: { Aleph: 0x00ff00 } },
+      { id: "c", name: "C", sephira: { keter: 0xff0000 }, path: { Aleph: 0x00ff00 } },
       DEFAULT_STYLE,
     );
 
-    const hex = (name: string): number => {
-      const mesh = group.children.find((child) => child.name === name) as Mesh;
-      return (mesh.material as MeshStandardMaterial).color.getHex();
-    };
+    expect(hexOf(group, "keter")).toBe(new Color(0xff0000).getHex()); // sephira override
+    expect(hexOf(group, "binah")).toBe(new Color(palette.node).getHex()); // sephira default
+    expect(hexOf(group, "keter-chokmah")).toBe(new Color(0x00ff00).getHex()); // Aleph override
+    expect(hexOf(group, "keter-binah")).toBe(new Color(palette.edge).getHex()); // path default
 
-    expect(hex("keter")).toBe(new Color(0xff0000).getHex()); // scheme override
-    expect(hex("keter-chokmah")).toBe(new Color(0x00ff00).getHex()); // Aleph override
-    expect(hex("binah")).toBe(new Color(palette.node).getHex()); // no override → default
-    expect(hex("keter-binah")).toBe(new Color(palette.edge).getHex()); // Beth → default
+    const tube = group.children.find((c) => c.name === "keter-chokmah") as Mesh;
+    expect(tube.children[0].visible).toBe(false); // border hidden
+  });
+
+  test("the neutral scheme renders white with the path border shown", () => {
+    const tree = createTreeOfLife();
+    const group = createGraphObject(tree);
+    applyColours(group, tree, DEFAULT_SCHEME, DEFAULT_STYLE);
+
+    expect(hexOf(group, "keter")).toBe(new Color(DEFAULT_STYLE.pathFill).getHex());
+    expect(hexOf(group, "keter-chokmah")).toBe(new Color(DEFAULT_STYLE.pathFill).getHex());
+
+    const border = (group.children.find((c) => c.name === "keter-chokmah") as Mesh)
+      .children[0] as Mesh;
+    expect(border.visible).toBe(true);
+    expect((border.material as MeshBasicMaterial).color.getHex()).toBe(
+      new Color(DEFAULT_STYLE.pathBorder).getHex(),
+    );
   });
 });
 
 describe("applyNodeOutline", () => {
-  test("adds a halo hull to each sphere when enabled, removes it when off", () => {
+  test("halo follows the toggle, but the neutral scheme forces it on", () => {
     const tree = createTreeOfLife();
     const group = createGraphObject(tree);
     const nodeIds = new Set(tree.nodes.map((node) => node.id));
     const spheres = () =>
       group.children.filter((child) => nodeIds.has(child.name));
+    const coloured = { id: "c", name: "C", sephira: {}, path: {} };
 
-    applyNodeOutline(group, tree, true, 0xd8c48a);
+    applyNodeOutline(group, tree, coloured, DEFAULT_STYLE, true);
     for (const sphere of spheres()) {
       expect(sphere.children).toHaveLength(1);
       expect(sphere.children[0].type).toBe("Mesh");
     }
 
-    applyNodeOutline(group, tree, false, 0xd8c48a);
+    applyNodeOutline(group, tree, coloured, DEFAULT_STYLE, false);
     for (const sphere of spheres()) {
       expect(sphere.children).toHaveLength(0);
+    }
+
+    applyNodeOutline(group, tree, DEFAULT_SCHEME, DEFAULT_STYLE, false);
+    for (const sphere of spheres()) {
+      expect(sphere.children).toHaveLength(1); // neutral scheme forces the outline on
     }
   });
 });

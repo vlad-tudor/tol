@@ -2,6 +2,7 @@ import {
   Group,
   type Material,
   Mesh,
+  type MeshBasicMaterial,
   type MeshStandardMaterial,
   type Object3D,
   Sprite,
@@ -13,10 +14,17 @@ import {
   type ColourScheme,
   EdgeAttributionKey,
   type GraphData,
+  type GraphEdge,
+  type GraphNode,
 } from "~/graph/types";
 import { luminance } from "~/theme/colour";
 import { createLabel, type LabelStyle } from "~/three/label";
-import { createNodeOutline, createSphere, createTube } from "~/three/meshes";
+import {
+  createNodeOutline,
+  createSphere,
+  createTube,
+  createTubeBorder,
+} from "~/three/meshes";
 import type { MaterialSpec, SceneStyle } from "~/three/styles";
 import { palette } from "~/theme/palette";
 
@@ -25,13 +33,13 @@ const INITIAL_ROTATION = 0.4; // radians (~23°) — a slight spawn tilt on X an
 const NODE_LABEL_WORLD_HEIGHT = 0.42;
 const EDGE_LABEL_WORLD_HEIGHT = 0.34;
 const LABEL_OUTLINE_WIDTH = 0.13; // stroke width as a fraction of the font size
-// Below this luminance a sphere is "dark", so its label flips to light ink.
-const DARK_SPHERE_LUMINANCE = 120;
+// Below this luminance a fill is "dark", so its label flips to light ink.
+const DARK_FILL_LUMINANCE = 120;
 
 /**
- * Build the geometry of a graph: one sphere per node, one tube per edge, all
- * parented under a single Group. Colours, labels, and the halo are applied
- * afterwards by {@link applyColours}, {@link applyLabels}, and
+ * Build the geometry of a graph: one sphere per node, one tube (with a border)
+ * per edge, all parented under a single Group. Colours, labels, and the halo
+ * are applied afterwards by {@link applyColours}, {@link applyLabels}, and
  * {@link applyNodeOutline}.
  *
  * @param graph - the graph to render
@@ -58,22 +66,37 @@ export function createGraphObject(graph: GraphData): Group {
 
     const tube = createTube(from.position, to.position);
     tube.name = edge.id;
+    // Shown only in the neutral scheme; colour set by applyColours.
+    tube.add(createTubeBorder(from.position, to.position, palette.void));
     group.add(tube);
   }
 
   return group;
 }
 
+/** The rendered colour of a sephira: the style's ink white in the neutral scheme, else the scheme colour. */
+function nodeFill(node: GraphNode, scheme: ColourScheme, style: SceneStyle): number {
+  if (scheme.neutral) return style.pathFill;
+  return scheme.sephira[node.id] ?? palette.node;
+}
+
+/** The rendered colour of a path: the style's ink white in the neutral scheme, else the scheme colour by letter. */
+function edgeFill(edge: GraphEdge, scheme: ColourScheme, style: SceneStyle): number {
+  if (scheme.neutral) return style.pathFill;
+  const letter = edge.attributions?.[EdgeAttributionKey.LetterName];
+  return (letter ? scheme.path[letter] : undefined) ?? palette.edge;
+}
+
 /**
- * Colour and material-tune a graph's meshes from a scheme and style. Sephira
- * colours key by node id, path colours by letter name; each material's emissive
- * is tinted from its own colour, and roughness / env-map / emissive strength
- * come from the style.
+ * Colour and material-tune a graph's meshes for a scheme and style. The neutral
+ * scheme renders spheres and paths in the style's ink white with the path
+ * border shown; any other scheme colours them and hides the border. Each
+ * material's emissive is tinted from its own colour.
  *
  * @param group - a Group built by {@link createGraphObject}
  * @param graph - the graph the group was built from
- * @param scheme - the colour scheme to apply
- * @param style - the active scene style (material tuning)
+ * @param scheme - the active colour scheme
+ * @param style - the active scene style (ink colours + material tuning)
  */
 export function applyColours(
   group: Group,
@@ -82,33 +105,40 @@ export function applyColours(
   style: SceneStyle,
 ): void {
   const meshById = new Map(group.children.map((child) => [child.name, child]));
+  const borderShown = scheme.neutral ?? false;
 
   for (const node of graph.nodes) {
     const mesh = meshById.get(node.id);
     if (!(mesh instanceof Mesh)) continue;
-    paintMesh(mesh, scheme.sephira[node.id] ?? palette.node, style.node);
+    paintMesh(mesh, nodeFill(node, scheme, style), style.node);
   }
 
   for (const edge of graph.edges) {
     const mesh = meshById.get(edge.id);
     if (!(mesh instanceof Mesh)) continue;
-    const letter = edge.attributions?.[EdgeAttributionKey.LetterName];
-    const colour = (letter ? scheme.path[letter] : undefined) ?? palette.edge;
-    paintMesh(mesh, colour, style.tube);
+    paintMesh(mesh, edgeFill(edge, scheme, style), style.tube);
+
+    const border = mesh.children.find((child) => child instanceof Mesh) as
+      | Mesh
+      | undefined;
+    if (border) {
+      border.visible = borderShown;
+      (border.material as MeshBasicMaterial).color.setHex(style.pathBorder);
+    }
   }
 }
 
 /**
- * (Re)build the labels on a graph's meshes for the visible attributions. Node
- * ink adapts to the sphere's own colour; path ink adapts to the background
- * (light vs dark) so both stay legible. Idempotent.
+ * (Re)build the labels on a graph's meshes for the visible attributions. Ink
+ * adapts to whatever it sits on — the rendered sphere or path colour — so it
+ * stays legible. Idempotent.
  *
  * @param group - a Group built by {@link createGraphObject}
  * @param graph - the graph the group was built from
  * @param nodeKeys - the node attribution categories to show
  * @param edgeKeys - the edge attribution categories to show
- * @param scheme - the active colour scheme (drives adaptive node ink)
- * @param style - the active scene style (drives adaptive path ink)
+ * @param scheme - the active colour scheme
+ * @param style - the active scene style
  */
 export function applyLabels(
   group: Group,
@@ -125,8 +155,8 @@ export function applyLabels(
     const mesh = meshById.get(node.id);
     if (!mesh) continue;
     const lines = visibleLines(node.attributions, nodeKeys);
-    const colour = scheme.sephira[node.id] ?? palette.node;
-    setLabel(mesh, lines, nodeLabelStyle(colour), (label) => {
+    const labelStyle = adaptiveLabelStyle(nodeFill(node, scheme, style), NODE_LABEL_WORLD_HEIGHT);
+    setLabel(mesh, lines, labelStyle, (label) => {
       label.position.set(0, 0, 0); // centred on the sphere
     });
   }
@@ -138,7 +168,8 @@ export function applyLabels(
     const to = nodeIndex.get(toId);
     if (!mesh || !from || !to) continue;
     const lines = visibleLines(edge.attributions, edgeKeys);
-    setLabel(mesh, lines, edgeLabelStyle(style.lightBg), (label) => {
+    const labelStyle = adaptiveLabelStyle(edgeFill(edge, scheme, style), EDGE_LABEL_WORLD_HEIGHT);
+    setLabel(mesh, lines, labelStyle, (label) => {
       // The tube sits at the origin (its geometry holds world coords), so a
       // world-space midpoint is the label's local position.
       label.position.set(
@@ -151,27 +182,32 @@ export function applyLabels(
 }
 
 /**
- * Add or remove each sphere's halo (an inverted-hull contour child).
- * Idempotent — call it again to change the colour or turn it off.
+ * Set each sphere's halo (an inverted-hull contour child). It's forced on in the
+ * neutral scheme (a dark ink outline), otherwise it follows `haloEnabled` (the
+ * style's gold/sepia). Idempotent.
  *
  * @param group - a Group built by {@link createGraphObject}
  * @param graph - the graph the group was built from
- * @param enabled - whether the halo is shown
- * @param colour - the contour colour (from the active style)
+ * @param scheme - the active colour scheme (neutral forces the outline on)
+ * @param style - the active scene style (outline colour)
+ * @param haloEnabled - the user's halo toggle (ignored when neutral)
  */
 export function applyNodeOutline(
   group: Group,
   graph: GraphData,
-  enabled: boolean,
-  colour: number,
+  scheme: ColourScheme,
+  style: SceneStyle,
+  haloEnabled: boolean,
 ): void {
+  const neutral = scheme.neutral ?? false;
+  const enabled = neutral || haloEnabled;
+  const colour = neutral ? style.pathBorder : style.nodeOutlineColour;
   const meshById = new Map(group.children.map((child) => [child.name, child]));
 
   for (const node of graph.nodes) {
     const mesh = meshById.get(node.id);
     if (!(mesh instanceof Mesh)) continue;
 
-    // The halo is the sphere's only Mesh child (labels are Sprites).
     for (const child of [...mesh.children]) {
       if (child instanceof Mesh) {
         mesh.remove(child);
@@ -193,26 +229,14 @@ function paintMesh(mesh: Mesh, colour: number, spec: MaterialSpec): void {
   material.envMapIntensity = spec.envMapIntensity;
 }
 
-/** Node label style: light ink on dark spheres, dark ink on light ones. */
-function nodeLabelStyle(colour: number): LabelStyle {
-  const dark = luminance(colour) < DARK_SPHERE_LUMINANCE;
+/** Label style that flips ink light/dark by the fill it sits on. */
+function adaptiveLabelStyle(fill: number, lineWorldHeight: number): LabelStyle {
+  const dark = luminance(fill) < DARK_FILL_LUMINANCE;
   return {
     color: dark ? palette.labelInkLight : palette.labelInkDark,
-    lineWorldHeight: NODE_LABEL_WORLD_HEIGHT,
+    lineWorldHeight,
     outline: {
       color: dark ? palette.labelContourDark : palette.labelInkLight,
-      width: LABEL_OUTLINE_WIDTH,
-    },
-  };
-}
-
-/** Path label style: dark ink on a light background, light ink on a dark one. */
-function edgeLabelStyle(lightBg: boolean): LabelStyle {
-  return {
-    color: lightBg ? palette.edgeLabelInkLight : palette.edgeLabelInk,
-    lineWorldHeight: EDGE_LABEL_WORLD_HEIGHT,
-    outline: {
-      color: lightBg ? palette.edgeLabelContourLight : palette.edgeLabelContour,
       width: LABEL_OUTLINE_WIDTH,
     },
   };

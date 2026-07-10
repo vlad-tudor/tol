@@ -5,12 +5,13 @@ import type { ColourScheme } from "~/graph/types";
 // sephira colours key by sephira id, path colours by letter name. Anything
 // omitted falls back to the render palette default.
 
-/** No overrides — every element keeps its palette colour (ivory / violet). */
+/** The "ink" scheme — spheres and paths render white with a dark border. */
 export const DEFAULT_SCHEME: ColourScheme = {
   id: "default",
   name: "Default",
   sephira: {},
   path: {},
+  neutral: true,
 };
 
 /** King scale (Atziluth) — the pure, primary world. The default on load. */

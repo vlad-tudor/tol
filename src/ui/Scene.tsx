@@ -40,7 +40,7 @@ export function Scene(props: SceneProps) {
     controller.setStyle(props.style());
     applyColours(group, graph, props.scheme(), props.style());
     applyLabels(group, graph, props.nodeKeys(), props.edgeKeys(), props.scheme(), props.style());
-    applyNodeOutline(group, graph, props.nodeOutline(), props.style().nodeOutlineColour);
+    applyNodeOutline(group, graph, props.scheme(), props.style(), props.nodeOutline());
 
     controller.start();
     setRendered({ controller, group, graph });
@@ -78,8 +78,9 @@ export function Scene(props: SceneProps) {
     applyNodeOutline(
       state.group,
       state.graph,
+      props.scheme(),
+      props.style(),
       props.nodeOutline(),
-      props.style().nodeOutlineColour,
     );
   });
 

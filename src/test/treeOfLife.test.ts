@@ -14,14 +14,14 @@ describe("Tree of Life dataset", () => {
     expect(validateGraph(createTreeOfLife())).toEqual([]);
   });
 
-  test("crown and kingdom anchor the plane; the pillars lean into depth", () => {
+  test("crown and kingdom anchor the plane; sides forward, centre back", () => {
     const nodes = nodesById(createTreeOfLife());
     expect(nodes.get("keter")?.position.z).toBe(0);
     expect(nodes.get("malkuth")?.position.z).toBe(0);
-    expect(nodes.get("tiferet")?.position.z).toBeGreaterThan(0);
-    expect(nodes.get("yesod")?.position.z).toBeGreaterThan(0);
-    expect(nodes.get("binah")?.position.z).toBeLessThan(0);
-    expect(nodes.get("chesed")?.position.z).toBeLessThan(0);
+    expect(nodes.get("tiferet")?.position.z).toBeLessThan(0); // central back
+    expect(nodes.get("yesod")?.position.z).toBeLessThan(0);
+    expect(nodes.get("binah")?.position.z).toBeGreaterThan(0); // sides forward
+    expect(nodes.get("chesed")?.position.z).toBeGreaterThan(0);
   });
 
   test("every path connects two distinct, existing nodes", () => {

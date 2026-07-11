@@ -1,12 +1,12 @@
 import { PillarPosition, type Sephira, type Vec3 } from "~/graph/types";
 
 // Layout parameters, tuned by eye. Middle-pillar nodes sit at x = 0; the side
-// pillars stand PILLAR_OFFSET to either side. Depth leans the central pillar
-// forward (+Z) and the sides back (-Z); LAYOUT_SCALE spreads the whole X/Y
-// layout — the gap between spheres. Keter and Malkuth stay at z = 0 as anchors.
+// pillars stand PILLAR_OFFSET to either side. Depth leans the side pillars
+// forward (+Z) and the central pillar (Tiferet, Yesod) back (-Z), with Keter
+// and Malkuth at z = 0 as anchors; LAYOUT_SCALE spreads the whole X/Y layout.
 const PILLAR_OFFSET = 2.8;
-const CENTRAL_DEPTH = 0.6;
-const SIDE_DEPTH = -0.6;
+const CENTRAL_DEPTH = -0.6;
+const SIDE_DEPTH = 0.6;
 const LAYOUT_SCALE = 1.3;
 
 /** Scale a base position into world space (X/Y spread; Z depth left as tuned). */
